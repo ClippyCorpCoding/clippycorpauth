@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ClippyCorp Auth Database Viewer</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+    #status {
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #a5b4fc;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #020617;
+    }
+    th, td {
+      border: 1px solid #1f2937;
+      padding: 8px;
+      font-size: 13px;
+    }
+    th {
+      background: #111827;
+      text-align: left;
+    }
+    tr:nth-child(even) {
+      background: #030712;
+    }
+    .error {
+      color: #fca5a5;
+    }
+  </style>
+</head>
+<body>
+  <h1>ClippyCorp Auth Database</h1>
+  <div id="status">Loading database from Google Sheets…</div>
+  <table id="db-table">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSzw09XQbV3iW1OI38K1obHoCYgexBMYB7KsOI8IYWG9M9dox0-glYnioiYpr1B8kIafl28NK_q4Hdu/pub?output=csv";
+
+    const statusEl = document.getElementById("status");
+    const tableHead = document.querySelector("#db-table thead");
+    const tableBody = document.querySelector("#db-table tbody");
+
+    function parseCSV(csvText) {
+      // Split into lines
+      const lines = csvText.trim().split("\n");
+      return lines.map(line => {
+        // Basic CSV split (no quoted fields handling)
+        return line.split(",").map(cell => cell.trim());
+      });
+    }
+
+    function renderTable(rows) {
+      if (!rows || rows.length === 0) {
+        statusEl.textContent = "No data found in database.";
+        return;
+      }
+
+      // First row = header
+      const header = rows[0];
+      const dataRows = rows.slice(1);
+
+      // Render header
+      const headTr = document.createElement("tr");
+      header.forEach(col => {
+        const th = document.createElement("th");
+        th.textContent = col;
+        headTr.appendChild(th);
+      });
+      tableHead.appendChild(headTr);
+
+      // Render data rows
+      dataRows.forEach(row => {
+        if (row.length === 1 && row[0] === "") return; // skip empty lines
+        const tr = document.createElement("tr");
+        row.forEach(cell => {
+          const td = document.createElement("td");
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        tableBody.appendChild(tr);
+      });
+
+      statusEl.textContent = `Loaded ${dataRows.length} record(s) from database.`;
+    }
+
+    async function loadDatabase() {
+      try {
+        statusEl.textContent = "Fetching database from Google Sheets…";
+        const response = await fetch(CSV_URL);
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+        const csvText = await response.text();
+        const rows = parseCSV(csvText);
+        renderTable(rows);
+      } catch (err) {
+        console.error("Error loading database:", err);
+        statusEl.textContent = "Failed to load database.";
+        statusEl.classList.add("error");
+      }
+    }
+
+    loadDatabase();
+  </script>
+</body>
+</html>
